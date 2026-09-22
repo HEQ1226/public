@@ -1,0 +1,26 @@
+[
+  {
+    "name": "云盘服务",
+    "slug": "cloud-drive",
+    "description": "私有云存储，安全高效，支持跨设备快速同步。",
+    "tag": "主推荐",
+    "targetUrl": "https://example.com/cloud-drive",
+    "tone": "blue"
+  },
+  {
+    "name": "数据面板",
+    "slug": "dashboard",
+    "description": "实时监控与可视化分析，快速掌握关键指标趋势。",
+    "tag": "数据分析",
+    "targetUrl": "https://example.com/dashboard",
+    "tone": "indigo"
+  },
+  {
+    "name": "代码仓库",
+    "slug": "git-repo",
+    "description": "私有仓库与版本管理，支持团队协作流程。",
+    "tag": "开发协作",
+    "targetUrl": "https://example.com/git-repo",
+    "tone": "violet"
+  }
+]

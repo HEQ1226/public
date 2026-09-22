@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HEQ Gateway</title>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #f8fbff 0%, #eef4ff 45%, #f5f2ff 100%);
+      color: #0f172a;
+      padding: 1rem;
+    }
+
+    .panel {
+      width: 100%;
+      max-width: 560px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 20px;
+      box-shadow: 0 20px 48px rgba(30, 64, 175, 0.12);
+      padding: 1.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      color: #334155;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.18);
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+    }
+
+    h1 {
+      margin-top: 0.9rem;
+      font-size: 1.35rem;
+      line-height: 1.4;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    p {
+      margin-top: 0.65rem;
+      color: #475569;
+      line-height: 1.65;
+      font-size: 0.95rem;
+    }
+
+    .meta {
+      margin-top: 1rem;
+      padding: 0.8rem 0.9rem;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      color: #334155;
+      word-break: break-all;
+    }
+
+    .actions {
+      margin-top: 1.2rem;
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      border-radius: 10px;
+      padding: 0.58rem 0.95rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 55%, #06b6d4 100%);
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <span class="badge">Gateway · 服务路由</span>
+    <h1 id="title">正在解析网关服务...</h1>
+    <p id="desc">请稍候，系统正在根据服务编码匹配目标服务。</p>
+    <div class="meta" id="meta">service: -</div>
+    <div class="actions">
+      <a href="./index.html" class="btn btn-secondary">返回引导页</a>
+      <a id="manualJumpBtn" href="#" class="btn btn-primary" style="display:none;">手动跳转</a>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE_URL = "";
+
+    /**
+     * 读取 URL 参数中的 service 编码。
+     * @returns {string}
+     */
+    function getServiceCodeFromUrl() {
+      const url = new URL(window.location.href);
+      return (url.searchParams.get("service") || "").trim();
+    }
+
+    /**
+     * 判断 URL 是否是可跳转的 http/https 地址。
+     * @param {string} targetUrl 目标地址
+     * @returns {boolean}
+     */
+    function isSafeTargetUrl(targetUrl) {
+      try {
+        const parsed = new URL(targetUrl);
+        return ["http:", "https:"].includes(parsed.protocol);
+      } catch (_) {
+        return false;
+      }
+    }
+
+    /**
+     * 渲染页面提示信息。
+     * @param {string} title 标题
+     * @param {string} desc 描述
+     * @param {string} meta 元信息
+     */
+    function setMessage(title, desc, meta) {
+      document.getElementById("title").textContent = title;
+      document.getElementById("desc").textContent = desc;
+      document.getElementById("meta").textContent = meta;
+    }
+
+    /**
+     * 网关入口主流程：参数校验、服务查找、地址校验、自动跳转。
+     */
+    async function runGateway() {
+      const serviceCode = getServiceCodeFromUrl();
+      if (!serviceCode) {
+        setMessage(
+          "缺少服务编码参数",
+          "请从引导页点击服务入口访问，或在地址上补充 ?service=xxx 参数。",
+          "service: 未提供"
+        );
+        return;
+      }
+
+      if (!/^[a-z0-9-]{2,32}$/.test(serviceCode)) {
+        setMessage(
+          "服务编码格式不合法",
+          "编码只允许小写字母、数字和连字符，长度 2-32。",
+          `service: ${serviceCode}`
+        );
+        return;
+      }
+
+      let service = null;
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/services/${encodeURIComponent(serviceCode)}`);
+        const result = await response.json();
+        if (!response.ok || result.code !== 0 || !result.data) {
+          setMessage(
+            "未找到对应服务",
+            "请确认服务已通过密钥完成自注册，或检查服务编码是否正确。",
+            `service: ${serviceCode}`
+          );
+          return;
+        }
+        service = result.data;
+      } catch (error) {
+        console.error("网关查询服务失败", error);
+        setMessage(
+          "网关服务不可用",
+          "无法连接网关后端，请先启动 server.js 再重试。",
+          `service: ${serviceCode} | api: ${API_BASE_URL}/api/services/${serviceCode}`
+        );
+        return;
+      }
+
+      if (!isSafeTargetUrl(service.targetUrl)) {
+        setMessage(
+          "服务目标地址不可用",
+          "当前服务的目标地址格式异常，请在服务端修正后重新自注册。",
+          `service: ${serviceCode} | target: ${service.targetUrl || "-"}`
+        );
+        return;
+      }
+
+      setMessage(
+        "网关匹配成功，准备跳转",
+        `服务「${service.name || serviceCode}」已匹配，正在跳转到目标地址。`,
+        `service: ${serviceCode} | target: ${service.targetUrl}`
+      );
+
+      const manualJumpBtn = document.getElementById("manualJumpBtn");
+      manualJumpBtn.style.display = "inline-flex";
+      manualJumpBtn.href = service.targetUrl;
+
+      window.setTimeout(() => {
+        window.location.href = service.targetUrl;
+      }, 900);
+    }
+
+    runGateway();
+  </script>
+</body>
+</html>
