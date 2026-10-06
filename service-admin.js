@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 /**
- * 服务管理脚本（Node.js 18+）
- * 功能：
+ * ⚠️ 已弃用（deprecated）
+ * ------------------------------------------------------------
+ * 本项目在 v2.0 已改为「静态配置」架构：服务列表写在 services.config.js，
+ * 由前端直接读取，不再需要后端注册 / 心跳接口。
+ * 因此本 CLI 已不再需要，保留仅为历史参考。
+ *
+ * 旧功能（仅供参考，勿再使用）：
  * 1. 注册服务
  * 2. 删除服务
  *
- * 使用示例：
+ * 使用示例（旧）：
  * node service-admin.js register --apiBaseUrl "https://638rember.me" --registerKey "heq123456" --name "OpenClaw" --slug "openclaw" --description "OpenClaw 本机服务" --targetUrl "https://638rember.me/openclaw/" --tag "AI服务" --tone "violet"
  * node service-admin.js delete --apiBaseUrl "https://638rember.me" --registerKey "heq123456" --slug "openclaw"
  */

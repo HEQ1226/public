@@ -104,6 +104,22 @@
       border-color: #cbd5e1;
       color: #334155;
     }
+
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 0.4rem;
+      border: 2px solid rgba(37, 99, 235, 0.25);
+      border-top-color: #2563eb;
+      border-radius: 999px;
+      animation: spin 0.8s linear infinite;
+      vertical-align: -2px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -118,23 +134,16 @@
     </div>
   </main>
 
+  <!-- 静态配置：服务列表写在 services.config.js 中，无需后端 -->
+  <script src="./services.config.js"></script>
   <script>
-    const API_BASE_URL = "";
+    const services = Array.isArray(window.HEQ_SERVICES) ? window.HEQ_SERVICES : [];
 
-    /**
-     * 读取 URL 参数中的 service 编码。
-     * @returns {string}
-     */
     function getServiceCodeFromUrl() {
       const url = new URL(window.location.href);
       return (url.searchParams.get("service") || "").trim();
     }
 
-    /**
-     * 判断 URL 是否是可跳转的 http/https 地址。
-     * @param {string} targetUrl 目标地址
-     * @returns {boolean}
-     */
     function isSafeTargetUrl(targetUrl) {
       try {
         const parsed = new URL(targetUrl);
@@ -144,22 +153,13 @@
       }
     }
 
-    /**
-     * 渲染页面提示信息。
-     * @param {string} title 标题
-     * @param {string} desc 描述
-     * @param {string} meta 元信息
-     */
     function setMessage(title, desc, meta) {
       document.getElementById("title").textContent = title;
       document.getElementById("desc").textContent = desc;
       document.getElementById("meta").textContent = meta;
     }
 
-    /**
-     * 网关入口主流程：参数校验、服务查找、地址校验、自动跳转。
-     */
-    async function runGateway() {
+    function runGateway() {
       const serviceCode = getServiceCodeFromUrl();
       if (!serviceCode) {
         setMessage(
@@ -179,25 +179,12 @@
         return;
       }
 
-      let service = null;
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/services/${encodeURIComponent(serviceCode)}`);
-        const result = await response.json();
-        if (!response.ok || result.code !== 0 || !result.data) {
-          setMessage(
-            "未找到对应服务",
-            "请确认服务已通过密钥完成自注册，或检查服务编码是否正确。",
-            `service: ${serviceCode}`
-          );
-          return;
-        }
-        service = result.data;
-      } catch (error) {
-        console.error("网关查询服务失败", error);
+      const service = services.find((item) => item.slug === serviceCode);
+      if (!service) {
         setMessage(
-          "网关服务不可用",
-          "无法连接网关后端，请先启动 server.js 再重试。",
-          `service: ${serviceCode} | api: ${API_BASE_URL}/api/services/${serviceCode}`
+          "未找到对应服务",
+          "请确认 services.config.js 中是否已配置该服务编码。",
+          `service: ${serviceCode}`
         );
         return;
       }
@@ -205,7 +192,7 @@
       if (!isSafeTargetUrl(service.targetUrl)) {
         setMessage(
           "服务目标地址不可用",
-          "当前服务的目标地址格式异常，请在服务端修正后重新自注册。",
+          "当前服务的目标地址格式异常，请在 services.config.js 中修正。",
           `service: ${serviceCode} | target: ${service.targetUrl || "-"}`
         );
         return;

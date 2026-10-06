@@ -1,11 +1,9 @@
 {
   "name": "heq-gateway-portal",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "静态引导页 + 轻量网关注册服务",
+  "description": "静态服务导航页：卡片网格 + 静态配置清单，无需后端注册",
   "scripts": {
-    "start": "node server.js",
-    "service:register": "node service-admin.js register",
-    "service:delete": "node service-admin.js delete"
+    "start": "node server.js"
   }
 }
