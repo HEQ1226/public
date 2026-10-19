@@ -29,5 +29,14 @@ window.HEQ_SERVICES = [
     tag: "健康",
     tone: "blue",
     icon: "🏋️"
+  },
+  { 
+    name: "Mu0.97k私人服务器",
+    slug: "mu097k",
+    description: "一款开源的奇迹0.97.11版本的私人服务器部署",
+    targetUrl: "https://game.638rember.me",
+    tag: "游戏",
+    tone: "violet",
+    icon: "🎮"
   }
 ];
